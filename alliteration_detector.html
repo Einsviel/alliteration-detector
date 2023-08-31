@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alliteration Detector</title>
+  </head>
+  <!-- Your HTML -->
+  <body>
+    <h1>Alliteration Detector</h1>
+    <textarea
+      id="textInput"
+      rows="10"
+      cols="50"
+      placeholder="Enter text here..."
+    ></textarea>
+    <button id="analyzeButton">Analyze</button>
+    <div id="alliterationList"></div>
+    <button id="downloadAllButton">Download All Alliteration Pairs</button>
+    <div id="downloadSection"></div>
+    <p id="footer">made by Sana <a href="https://www.linkedin.com/in/petrusclaver/" target="_blank" rel="noopener noreferrer">•鎖那</a></p>
+    <!-- Your HTML ends here -->
+
+    <!-- Your CSS -->
+    <style>
+      #footer {
+        filter: drop-shadow(0.2rem 0.3rem 0.2rem rgb(0, 0, 0));
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        padding-right: 2rem;
+        color: #ffa600;
+      }
+      #footer a{
+color: inherit;
+text-decoration: none;
+      }
+      body {
+        font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS",
+          sans-serif;
+        margin: 0;
+        padding-left: 5rem;
+        padding-right: 5rem;
+        background-color: #4e4c5f;
+        color: white;
+        padding-bottom: 5rem;
+      }
+      #textInput {
+        width: 100%;
+        height: auto;
+        resize: vertical;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin: 10px auto; /* Center horizontally */
+        display: block; /* To prevent horizontal scrollbar due to margin */
+      }
+      h1 {
+        filter: drop-shadow(0.5rem 0.5rem 1rem rgb(0, 0, 0));
+        color: #e5e5e5;
+        text-align: center;
+        margin-top: 20px;
+      }
+      #analyzeButton,
+      #downloadAllButton {
+        display: block;
+        margin: 10px auto;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px; /* Example: Change font size */
+      }
+
+      #downloadAllButton {
+        background-color: #28a745; /* Example: Different background color for download button */
+      }
+      #alliterationList p {
+        color: red;
+        font-size: larger;
+        font-weight: bolder;
+      }
+      /* Styling for download buttons in "Alliteration Pairs" section */
+      #alliterationList li a {
+        display: inline-block;
+        margin-left: 10px;
+        margin-top: 0.5rem;
+        padding: 5px 10px;
+        background-color: #28a745;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 3px;
+      }
+#downloadSection p{
+  color: red;
+  font-size: larger;
+  font-weight: bolder;
+}
+      /* Styling for download links in "All Alliteration Pairs" section */
+      #downloadSection a {
+        display: inline-block;
+        margin-right: 10px;
+        padding: 5px 10px;
+        background-color: #007bff;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 3px;
+      }
+    </style>
+    <!-- Your CSS ends here -->
+
+    <!-- Your JS starts here -->
+    <script>
+      const textInput = document.getElementById("textInput");
+      const analyzeButton = document.getElementById("analyzeButton");
+      const alliterationList = document.getElementById("alliterationList");
+      const downloadAllButton = document.getElementById("downloadAllButton");
+      const downloadSection = document.getElementById("downloadSection");
+
+      let alliterationPairs = [];
+      let inputText = "";
+
+      analyzeButton.addEventListener("click", handleAnalysis);
+      downloadAllButton.addEventListener("click", downloadAllPairs);
+
+      function handleAnalysis() {
+        inputText = textInput.value;
+
+        if (inputText.trim() === "") {
+          alliterationList.innerHTML =
+            "<p>Please enter text in the input box.</p>";
+        } else {
+          alliterationPairs = detectAlliteration(inputText);
+          displayAlliteration(alliterationPairs, inputText);
+        }
+      }
+
+      // ... Your existing code ...
+
+      function detectAlliteration(text) {
+        const sentences = text.split(/[.!?]/);
+        const alliterationPairs = [];
+
+        for (let s = 0; s < sentences.length; s++) {
+          const words = sentences[s].split(/\s+/);
+
+          for (let i = 0; i < words.length - 1; i++) {
+            const currentWord = words[i].toLowerCase();
+            const nextWord = words[i + 1].toLowerCase();
+
+            if (currentWord && nextWord && currentWord[0] === nextWord[0]) {
+              alliterationPairs.push({
+                alliterationWord: currentWord,
+                followingWord: nextWord,
+                sentenceIndex: s,
+              });
+            }
+          }
+        }
+
+        return alliterationPairs;
+      }
+
+      function displayAlliteration(alliterationPairs, inputText) {
+        alliterationList.innerHTML = "<h2>Alliteration Pairs</h2>";
+
+        if (alliterationPairs.length === 0) {
+          alliterationList.innerHTML += "<p>No alliteration pairs found.</p>";
+        } else {
+          const ol = document.createElement("ol");
+          const sentences = inputText.split(/[.!?]/);
+
+          alliterationPairs.forEach((pair, index) => {
+            // Check if the following word starts with the same letter as the current word
+            if (pair.alliterationWord[0] === pair.followingWord[0]) {
+              const li = document.createElement("li");
+              li.textContent = `${pair.alliterationWord} - ${
+                pair.followingWord
+              } (Sentence ${pair.sentenceIndex + 1})`;
+
+              const content = `${pair.alliterationWord} - ${
+                pair.followingWord
+              } (Sentence: "${sentences[pair.sentenceIndex].trim()}")`;
+              const blob = new Blob([content], { type: "text/plain" });
+
+              const downloadLink = document.createElement("a");
+              downloadLink.href = URL.createObjectURL(blob);
+              downloadLink.download = `alliteration_pair_${index}.txt`;
+              downloadLink.textContent = "Download";
+              li.appendChild(downloadLink);
+
+              ol.appendChild(li);
+            }
+          });
+          alliterationList.appendChild(ol);
+        }
+      }
+
+      function downloadAllPairs() {
+        downloadAllAlliterationPairs(alliterationPairs, inputText);
+      }
+
+      function downloadAllAlliterationPairs(alliterationPairs, inputText) {
+        if (alliterationPairs.length === 0) {
+          downloadSection.innerHTML = "<p>No alliteration pairs found.</p>";
+        } else {
+          const txtContent = alliterationPairs
+            .filter(
+              (pair) => pair.alliterationWord[0] === pair.followingWord[0]
+            )
+            .map((pair) => {
+              const sentenceNumber = pair.sentenceIndex + 1;
+              return `${pair.alliterationWord} - ${pair.followingWord} (Sentence: ${sentenceNumber})`;
+            })
+            .join("\n");
+
+          const txtBlob = new Blob([txtContent], { type: "text/plain" });
+
+          const downloadLinkTXT = document.createElement("a");
+          downloadLinkTXT.href = URL.createObjectURL(txtBlob);
+          downloadLinkTXT.download = "all_alliteration_pairs.txt";
+          downloadLinkTXT.textContent = "Download All Alliteration Pairs (TXT)";
+
+          const csvContent =
+            "Alliteration Word,Following Word,Sentence Number\n" +
+            alliterationPairs
+              .filter(
+                (pair) => pair.alliterationWord[0] === pair.followingWord[0]
+              )
+              .map((pair) => {
+                const sentenceNumber = pair.sentenceIndex + 1;
+                return `"${pair.alliterationWord}","${pair.followingWord}",${sentenceNumber}`;
+              })
+              .join("\n");
+
+          const csvBlob = new Blob([csvContent], { type: "text/csv" });
+
+          const downloadLinkCSV = document.createElement("a");
+          downloadLinkCSV.href = URL.createObjectURL(csvBlob);
+          downloadLinkCSV.download = "all_alliteration_pairs.csv";
+          downloadLinkCSV.textContent = "Download All Alliteration Pairs (CSV)";
+
+          downloadSection.innerHTML = "";
+          downloadSection.appendChild(downloadLinkTXT);
+          downloadSection.appendChild(document.createTextNode(" ")); // Adding space between the buttons
+          downloadSection.appendChild(downloadLinkCSV);
+        }
+      }
+    </script>
+    <!-- Your JS ends here -->
+  </body>
+</html>
