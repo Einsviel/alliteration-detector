@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alliteration Detector</title>
+    <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+</head>
+
+<body>
+    <h1>Alliteration Detector</h1>
+    <textarea
+        id="textInput"
+        rows="10"
+        cols="50"
+        placeholder="Enter text here..."
+    ></textarea>
+    <button id="analyzeButton">Analyze</button>
+    <div id="downloadSection"></div>
+
+    <p id="footer">
+        made by YourName
+        <a
+            href="https://your-linkedin-profile/"
+            target="_blank"
+            rel="noopener noreferrer">•YourName</a>
+    </p>
+
+    <style>
+        #footer {
+            filter: drop-shadow(0.2rem 0.3rem 0.2rem rgb(0, 0, 0));
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            padding-right: 2rem;
+            color: #ffa600;
+        }
+
+        #footer a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        body {
+            font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS",
+                sans-serif;
+            margin: 0;
+            padding-left: 5rem;
+            padding-right: 5rem;
+            background-color: #4e4c5f;
+            color: white;
+            padding-bottom: 5rem;
+        }
+
+        #textInput {
+            width: 100%;
+            height: auto;
+            resize: vertical;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin: 10px auto;
+            display: block;
+        }
+
+        h1 {
+            filter: drop-shadow(0.5rem 0.5rem 1rem rgb(0, 0, 0));
+            color: #e5e5e5;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #analyzeButton {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #downloadSection p {
+            color: red;
+            font-size: larger;
+            font-weight: bolder;
+        }
+
+        #downloadSection a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 3px;
+        }
+    </style>
+
+    <script>
+        const textInput = document.getElementById("textInput");
+        const analyzeButton = document.getElementById("analyzeButton");
+        const downloadSection = document.getElementById("downloadSection");
+
+        let alliterationPairs = [];
+        let inputText = "";
+
+        analyzeButton.addEventListener("click", handleAnalysis);
+
+        function handleAnalysis() {
+            inputText = textInput.value;
+
+            if (inputText.trim() === "") {
+                alert("Please enter text in the input box.");
+            } else {
+                alliterationPairs = detectAlliteration(inputText);
+                displayDownloadLinks(alliterationPairs, inputText);
+            }
+        }
+
+        function detectAlliteration(text) {
+            const sentences = text.split(/[.!?]/);
+            const alliterationPairs = [];
+
+            for (let s = 0; s < sentences.length; s++) {
+                const words = sentences[s].split(/\s+/);
+
+                for (let i = 0; i < words.length - 1; i++) {
+                    const currentWord = words[i].toLowerCase();
+                    const nextWord = words[i + 1].toLowerCase();
+
+                    if (currentWord && nextWord && currentWord[0] === nextWord[0]) {
+                        alliterationPairs.push({
+                            alliterationWord: words[i],
+                            followingWord: words[i + 1],
+                            sentenceIndex: s,
+                        });
+                    }
+                }
+            }
+
+            return alliterationPairs;
+        }
+
+        function displayDownloadLinks(alliterationPairs, inputText) {
+            if (alliterationPairs.length === 0) {
+                alert("No alliteration pairs found.");
+            } else {
+                downloadAllAlliterationPairs(alliterationPairs, inputText);
+            }
+        }
+
+        function downloadAllAlliterationPairs(alliterationPairs, inputText) {
+            // Create CSV content with additional column for the whole sentence
+            const csvContent =
+                "Alliteration Word,Following Word,Sentence Number,Whole Sentence\n" +
+                alliterationPairs
+                    .filter(pair => pair.alliterationWord[0] === pair.followingWord[0])
+                    .map(pair => {
+                        const sentenceNumber = pair.sentenceIndex + 1;
+                        const wholeSentence = inputText.split(/[.!?]/)[pair.sentenceIndex].trim();
+                        return `"${pair.alliterationWord}","${pair.followingWord}",${sentenceNumber},"${wholeSentence}"`;
+                    })
+                    .join("\n");
+
+            // Create a Blob and download link for the CSV file
+            const csvBlob = new Blob([csvContent], { type: "text/csv" });
+
+            const downloadLinkCSV = document.createElement("a");
+            downloadLinkCSV.href = URL.createObjectURL(csvBlob);
+            downloadLinkCSV.download = "all_alliteration_pairs.csv";
+            downloadLinkCSV.textContent = "Download All Alliteration Pairs (CSV)";
+
+            // Create content for the TXT file
+            const txtContent = alliterationPairs
+                .filter(pair => pair.alliterationWord[0] === pair.followingWord[0])
+                .map(pair => {
+                    const sentenceNumber = pair.sentenceIndex + 1;
+                    const wholeSentence = inputText.split(/[.!?]/)[pair.sentenceIndex].trim();
+                    return `${pair.alliterationWord} - ${pair.followingWord} (Sentence ${sentenceNumber}): "${wholeSentence}"`;
+                })
+                .join("\n");
+
+            // Create a Blob and download link for the TXT file
+            const txtBlob = new Blob([txtContent], { type: "text/plain" });
+
+            const downloadLinkTXT = document.createElement("a");
+            downloadLinkTXT.href = URL.createObjectURL(txtBlob);
+            downloadLinkTXT.download = "all_alliteration_pairs.txt";
+            downloadLinkTXT.textContent = "Download All Alliteration Pairs (TXT)";
+
+            // Create content for the DOCX file with highlighted alliteration pairs
+            const docxContent = inputText.replace(
+                new RegExp(
+                    alliterationPairs
+                        .filter(pair => pair.alliterationWord[0] === pair.followingWord[0])
+                        .map(pair => `${pair.alliterationWord} ${pair.followingWord}`)
+                        .join("|"),
+                    "gi"
+                ),
+                match => `<span style="background-color: yellow">${match}</span>`
+            );
+
+            // Create a Blob and download link for the DOCX file using html-docx-js
+            const docxBlob = htmlDocx.asBlob('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + docxContent + '</body></html>');
+            
+            const downloadLinkDOCX = document.createElement("a");
+            downloadLinkDOCX.href = URL.createObjectURL(docxBlob);
+            downloadLinkDOCX.download = "all_alliteration_pairs.docx";
+            downloadLinkDOCX.textContent = "Download All Alliteration Pairs (DOCX)";
+
+            downloadSection.innerHTML = "";
+            downloadSection.appendChild(downloadLinkCSV);
+            downloadSection.appendChild(document.createTextNode(" "));
+            downloadSection.appendChild(downloadLinkTXT);
+            downloadSection.appendChild(document.createTextNode(" "));
+            downloadSection.appendChild(downloadLinkDOCX);
+        }
+    </script>
+</body>
+
+</html>
