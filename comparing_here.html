@@ -214,9 +214,9 @@
 
         function downloadAllAlliterationPairs(alliterationPairs, inputText) {
             // Create content for the CSV file
-            const csvContent = alliterationPairs
-                .map((pair, index) => `${index + 1},${pair.alliterationWord.replace(/,/g, '')} - ${pair.followingWord.replace(/,/g, '')},${pair.sentenceIndex + 1},"${inputText.split(/[.!?]/)[pair.sentenceIndex].trim()}"`)
-                .join("\n");
+            const csvContent = `No.,Pairs,Where to find,Full sentence\n${alliterationPairs
+                .map((pair, index) => `${index + 1},${pair.alliterationWord} - ${pair.followingWord},${pair.sentenceIndex + 1},"${inputText.split(/[.!?]/)[pair.sentenceIndex].trim()}"`)
+                .join("\n")}`;
 
             // Create a Blob and download link for the CSV file
             const csvBlob = new Blob([csvContent], { type: "text/csv" });

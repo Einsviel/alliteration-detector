@@ -17,10 +17,11 @@
         placeholder="Enter text here..."
     ></textarea>
     <button id="analyzeButton">Analyze</button>
+    <div id="outputSection"></div>
     <div id="downloadSection"></div>
 
     <p id="footer">
-        made by
+        made by 
         <a
             href="https://www.linkedin.com/in/petrusclaver/"
             target="_blank"
@@ -83,26 +84,44 @@
             font-size: 16px;
         }
 
-        #downloadSection p {
-            color: red;
-            font-size: larger;
-            font-weight: bolder;
+        #outputSection {
+            margin-top: 20px;
         }
 
-        #downloadSection a {
+        .alliteration-group {
+            margin-bottom: 20px;
+        }
+
+        .alliteration-group h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .alliteration-pair {
+            margin-bottom: 5px;
+        }
+
+        #downloadSection {
+            margin-top: 20px;
+        }
+
+        .download-button {
             display: inline-block;
             margin-right: 10px;
-            padding: 5px 10px;
+            padding: 8px 16px;
             background-color: #007bff;
             color: #fff;
             text-decoration: none;
-            border-radius: 3px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
         }
     </style>
 
     <script>
         const textInput = document.getElementById("textInput");
         const analyzeButton = document.getElementById("analyzeButton");
+        const outputSection = document.getElementById("outputSection");
         const downloadSection = document.getElementById("downloadSection");
 
         let alliterationPairs = [];
@@ -117,6 +136,7 @@
                 alert("Please enter text in the input box.");
             } else {
                 alliterationPairs = detectAlliteration(inputText);
+                displayAlliterationGroups(alliterationPairs);
                 displayDownloadLinks(alliterationPairs, inputText);
             }
         }
@@ -144,7 +164,46 @@
 
             return alliterationPairs;
         }
-// Kontol
+
+        function displayAlliterationGroups(alliterationPairs) {
+            outputSection.innerHTML = "";
+
+            const groupedAlliteration = groupAlliterationPairs(alliterationPairs);
+
+            for (const [groupKey, group] of groupedAlliteration) {
+                const groupContainer = document.createElement("div");
+                groupContainer.classList.add("alliteration-group");
+
+                const groupTitle = document.createElement("h2");
+                groupTitle.textContent = `${groupKey} Group`;
+                groupTitle.style.color = getGroupColor(groupKey);
+                groupContainer.appendChild(groupTitle);
+
+                for (const pair of group) {
+                    const pairElement = document.createElement("div");
+                    pairElement.classList.add("alliteration-pair");
+                    pairElement.innerHTML = `<span>${pair.alliterationWord}</span> - <span>${pair.followingWord}</span> (Sentence ${pair.sentenceIndex + 1})`;
+                    groupContainer.appendChild(pairElement);
+                }
+
+                outputSection.appendChild(groupContainer);
+            }
+        }
+
+        function groupAlliterationPairs(alliterationPairs) {
+            const groupedAlliteration = new Map();
+
+            for (const pair of alliterationPairs) {
+                const key = pair.alliterationWord[0].toUpperCase();
+                if (!groupedAlliteration.has(key)) {
+                    groupedAlliteration.set(key, []);
+                }
+                groupedAlliteration.get(key).push(pair);
+            }
+
+            return groupedAlliteration;
+        }
+
         function displayDownloadLinks(alliterationPairs, inputText) {
             if (alliterationPairs.length === 0) {
                 alert("No alliteration pairs found.");
@@ -154,63 +213,31 @@
         }
 
         function downloadAllAlliterationPairs(alliterationPairs, inputText) {
-            // Create CSV content with additional column for the whole sentence
-            const csvContent =
-                "Alliteration Word,Following Word,Sentence Number,Whole Sentence\n" +
-                alliterationPairs
-                    .filter(pair => pair.alliterationWord[0] === pair.followingWord[0])
-                    .map(pair => {
-                        const sentenceNumber = pair.sentenceIndex + 1;
-                        const wholeSentence = inputText.split(/[.!?]/)[pair.sentenceIndex].trim();
-                        return `"${pair.alliterationWord}","${pair.followingWord}",${sentenceNumber},"${wholeSentence}"`;
-                    })
-                    .join("\n");
+            // Create content for the CSV file
+            const csvContent = alliterationPairs
+                .map((pair, index) => `${index + 1},${pair.alliterationWord.replace(/,/g, '')} - ${pair.followingWord.replace(/,/g, '')},${pair.sentenceIndex + 1},"${inputText.split(/[.!?]/)[pair.sentenceIndex].trim()}"`)
+                .join("\n");
 
             // Create a Blob and download link for the CSV file
             const csvBlob = new Blob([csvContent], { type: "text/csv" });
 
-            const downloadLinkCSV = document.createElement("a");
-            downloadLinkCSV.href = URL.createObjectURL(csvBlob);
-            downloadLinkCSV.download = "all_alliteration_pairs.csv";
-            downloadLinkCSV.textContent = "Download All Alliteration Pairs (CSV)";
+            const downloadLinkCSV = createDownloadLink(csvBlob, "all_alliteration_pairs.csv", "Download CSV");
 
             // Create content for the TXT file
             const txtContent = alliterationPairs
-                .filter(pair => pair.alliterationWord[0] === pair.followingWord[0])
-                .map(pair => {
-                    const sentenceNumber = pair.sentenceIndex + 1;
-                    const wholeSentence = inputText.split(/[.!?]/)[pair.sentenceIndex].trim();
-                    return `${pair.alliterationWord} - ${pair.followingWord} (Sentence ${sentenceNumber}): "${wholeSentence}"`;
-                })
+                .map(pair => `${pair.alliterationWord.replace(/,/g, '')} - ${pair.followingWord.replace(/,/g, '')} (Sentence ${pair.sentenceIndex + 1}): "${inputText.split(/[.!?]/)[pair.sentenceIndex].trim()}"`)
                 .join("\n");
 
             // Create a Blob and download link for the TXT file
             const txtBlob = new Blob([txtContent], { type: "text/plain" });
 
-            const downloadLinkTXT = document.createElement("a");
-            downloadLinkTXT.href = URL.createObjectURL(txtBlob);
-            downloadLinkTXT.download = "all_alliteration_pairs.txt";
-            downloadLinkTXT.textContent = "Download All Alliteration Pairs (TXT)";
+            const downloadLinkTXT = createDownloadLink(txtBlob, "all_alliteration_pairs.txt", "Download TXT");
 
-            // Create content for the DOCX file with highlighted alliteration pairs
-            const docxContent = inputText.replace(
-                new RegExp(
-                    alliterationPairs
-                        .filter(pair => pair.alliterationWord[0] === pair.followingWord[0])
-                        .map(pair => `${pair.alliterationWord} ${pair.followingWord}`)
-                        .join("|"),
-                    "gi"
-                ),
-                match => `<span style="background-color: yellow">${match}</span>`
-            );
+            // Create content for the DOCX file
+            const docxContent = inputText;
+            const docxBlob = htmlDocx.asBlob(`<html><body>${highlightAlliteration(docxContent, alliterationPairs)}</body></html>`);
 
-            // Create a Blob and download link for the DOCX file using html-docx-js
-            const docxBlob = htmlDocx.asBlob('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + docxContent + '</body></html>');
-            
-            const downloadLinkDOCX = document.createElement("a");
-            downloadLinkDOCX.href = URL.createObjectURL(docxBlob);
-            downloadLinkDOCX.download = "all_alliteration_pairs.docx";
-            downloadLinkDOCX.textContent = "Download All Alliteration Pairs (DOCX)";
+            const downloadLinkDOCX = createDownloadLink(docxBlob, "all_alliteration_pairs.docx", "Download DOCX");
 
             downloadSection.innerHTML = "";
             downloadSection.appendChild(downloadLinkCSV);
@@ -218,6 +245,61 @@
             downloadSection.appendChild(downloadLinkTXT);
             downloadSection.appendChild(document.createTextNode(" "));
             downloadSection.appendChild(downloadLinkDOCX);
+        }
+
+        function createDownloadLink(blob, filename, label) {
+            const downloadLink = document.createElement("a");
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = filename;
+            downloadLink.classList.add("download-button");
+            downloadLink.textContent = label;
+
+            return downloadLink;
+        }
+
+        function highlightAlliteration(text, alliterationPairs) {
+            let coloredText = text;
+
+            for (const pair of alliterationPairs) {
+                const regex = new RegExp(`\\b(${pair.alliterationWord.replace(/,/g, '')}\\b|\\b${pair.followingWord.replace(/,/g, '')}\\b)`, 'gi');
+                const color = getGroupColor(pair.alliterationWord[0].toUpperCase());
+                coloredText = coloredText.replace(regex, `<span style="background-color: ${color};">$1</span>`);
+            }
+
+            return coloredText;
+        }
+
+        function getGroupColor(groupKey) {
+            const colorMap = {
+                A: '#FF5733',
+                B: '#4CAF50',
+                C: '#2196F3',
+                D: '#FFC107',
+                E: '#E91E63',
+                F: '#673AB7',
+                G: '#FF9800',
+                H: '#009688',
+                I: '#795548',
+                J: '#3F51B5',
+                K: '#CDDC39',
+                L: '#FFEB3B',
+                M: '#FF5722',
+                N: '#8BC34A',
+                O: '#607D8B',
+                P: '#FFD700',
+                Q: '#9C27B0',
+                R: '#00BCD4',
+                S: '#4CAF50',
+                T: '#FF4081',
+                U: '#FFC107',
+                V: '#3F51B5',
+                W: '#4CAF50',
+                X: '#E91E63',
+                Y: '#FF5722',
+                Z: '#009688',
+            };
+
+            return colorMap[groupKey] || '#FFFFFF'; // Default to white if the key is not found
         }
     </script>
 </body>
