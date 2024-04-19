@@ -266,12 +266,20 @@ function displayAlliterationGroups(alliterationPairs) {
         }
 
         function downloadAllAlliterationPairs(alliterationPairs, inputText) {
-    // Create header row for the CSV file
-    const csvHeader = "No.,Pairs,Where to find,Full sentence";
+    // Create header row for the CSV file using semicolon as the separator
+    const csvHeader = "No.;Pairs;Where to find;Full sentence";
 
     // Create content for the CSV file
     const csvContent = alliterationPairs
-        .map((pair, index) => `${index + 1},"${pair.alliterationWord} - ${pair.followingWord}",${pair.sentenceIndex + 1},"${inputText.split(/[.!?]/)[pair.sentenceIndex].trim()}"`)
+        .map((pair, index) => {
+            // Prepare the pair string with quotes for CSV format
+            const pairString = `"${pair.alliterationWord.replace(/"/g, '""')} - ${pair.followingWord.replace(/"/g, '""')}"`;
+
+            // Prepare the sentence by escaping quotes and wrapping in quotes
+            const sentence = inputText.split(/[.!?]/)[pair.sentenceIndex].trim().replace(/"/g, '""');
+
+            return `${index + 1};${pairString};${pair.sentenceIndex + 1};"${sentence}"`;
+        })
         .join("\n");
 
     // Concatenate header and content
@@ -281,6 +289,9 @@ function displayAlliterationGroups(alliterationPairs) {
     const csvBlob = new Blob([csvFullContent], { type: "text/csv" });
 
     const downloadLinkCSV = createDownloadLink(csvBlob, "all_alliteration_pairs.csv", "Download CSV");
+
+    // Ensure your function includes the code to handle TXT and DOCX files if needed...
+
 
 
             // Create content for the TXT file
