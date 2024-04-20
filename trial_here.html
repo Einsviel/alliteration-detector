@@ -23,12 +23,12 @@
     <p id="footer">
      This project is financially supported by Grant-in-Aid for Scientific Research (KAKENHI: Project No. 22K00426). 
         <br> Made by <a href="https://souran.aichi-edu.ac.jp/teachers/26f003925d18ad2b.html"
-         target="_blank" rel="noopener nore noreferrer">•小塚 良孝</a>
+         target="_blank" rel="noopener nore noreferrer">Yoshitaka Kozuka •小塚 良孝</a>
         Developed by 
         <a
             href="https://www.linkedin.com/in/petrusclaver/"
             target="_blank"
-            rel="noopener noreferrer">•鎖那</a>
+            rel="noopener noreferrer">Petrusclaver Samudera Wicaksana •鎖那</a>
     
         </p>
 
@@ -123,6 +123,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
+            margin-bottom: 3rem;
         }
     </style>
 
@@ -198,19 +199,24 @@ function displayAlliterationGroups(alliterationPairs) {
 
     const groupedAlliteration = groupAlliterationPairs(alliterationPairs);
 
-    for (const [groupKey, group] of groupedAlliteration) {
+    // Sort the keys alphabetically
+    const sortedKeys = Array.from(groupedAlliteration.keys()).sort();
+
+    for (const groupKey of sortedKeys) {
+        const group = groupedAlliteration.get(groupKey);
+
         const groupContainer = document.createElement("div");
         groupContainer.classList.add("alliteration-group");
 
         const groupTitle = document.createElement("h2");
         groupTitle.textContent = `${groupKey} Group`;
-        groupTitle.style.color = getGroupColor(groupKey);
+        groupTitle.style.color = getGroupColor(groupKey); // Set color for group title
         groupContainer.appendChild(groupTitle);
 
         for (const pair of group) {
             const pairElement = document.createElement("div");
             pairElement.classList.add("alliteration-pair");
-            pairElement.innerHTML = `<span>${pair.originalAlliterationWord}</span> - <span>${pair.originalFollowingWord}</span> (Sentence ${pair.sentenceIndex + 1})`;
+            pairElement.innerHTML = `<span style="color: white;">${pair.alliterationWord}</span> - <span style="color: white;">${pair.followingWord}</span> (Sentence ${pair.sentenceIndex + 1})`;
             groupContainer.appendChild(pairElement);
         }
 
@@ -218,30 +224,7 @@ function displayAlliterationGroups(alliterationPairs) {
     }
 }
 
-        function displayAlliterationGroups(alliterationPairs) {
-            outputSection.innerHTML = "";
 
-            const groupedAlliteration = groupAlliterationPairs(alliterationPairs);
-
-            for (const [groupKey, group] of groupedAlliteration) {
-                const groupContainer = document.createElement("div");
-                groupContainer.classList.add("alliteration-group");
-
-                const groupTitle = document.createElement("h2");
-                groupTitle.textContent = `${groupKey} Group`;
-                groupTitle.style.color = getGroupColor(groupKey);
-                groupContainer.appendChild(groupTitle);
-
-                for (const pair of group) {
-                    const pairElement = document.createElement("div");
-                    pairElement.classList.add("alliteration-pair");
-                    pairElement.innerHTML = `<span>${pair.alliterationWord}</span> - <span>${pair.followingWord}</span> (Sentence ${pair.sentenceIndex + 1})`;
-                    groupContainer.appendChild(pairElement);
-                }
-
-                outputSection.appendChild(groupContainer);
-            }
-        }
 
         function groupAlliterationPairs(alliterationPairs) {
             const groupedAlliteration = new Map();
@@ -341,37 +324,39 @@ function displayAlliterationGroups(alliterationPairs) {
         }
 
         function getGroupColor(groupKey) {
-            const colorMap = {
-                A: '#4B0082', // Indigo
-                B: '#4B0082', // Indigo
-                C: '#4B0082', // Indigo
-                D: '#4B0082', // Indigo
-                E: '#FF0000', // Red
-                F: '#FF0000', // Red
-                G: '#FF0000', // Red
-                H: '#FF0000', // Red
-                I: '#FFA500', // Orange
-                J: '#FFA500', // Orange
-                K: '#FFA500', // Orange
-                L: '#FFA500', // Orange
-                M: '#FFFF00', // Yellow
-                N: '#FFFF00', // Yellow
-                O: '#FFFF00', // Yellow
-                P: '#FFFF00', // Yellow
-                Q: '#008000', // Green
-                R: '#008000', // Green
-                S: '#008000', // Green
-                T: '#008000', // Green
-                U: '#0000FF', // Blue
-                V: '#0000FF', // Blue
-                W: '#0000FF', // Blue
-                X: '#0000FF', // Blue
-                Y: '#8B00FF', // Violet
-                Z: '#8B00FF', // Violet
-            };
+    // Define base colors with corresponding lightness values
+    const colorMap = {
+        A: '#240065', // Dark Indigo
+        B: '#4B0082', // Indigo
+        C: '#7363BA', // Light Indigo
+        D: '#9D96E6', // Very Light Indigo
+        E: '#800000', // Dark Red
+        F: '#FF0000', // Red
+        G: '#FF7373', // Light Red
+        H: '#FFB6B6', // Very Light Red
+        I: '#FFA500', // Orange
+        J: '#FFD700', // Yellow
+        K: '#00FF00', // Green
+        L: '#0000FF', // Blue
+        M: '#8A2BE2', // Violet
+        N: '#800080', // Purple
+        O: '#FF00FF', // Magenta
+        P: '#FFC0CB', // Pink
+        Q: '#FF7F50', // Coral
+        R: '#00FFFF', // Cyan
+        S: '#20B2AA', // Aqua
+        T: '#E6E6FA', // Lavender
+        U: '#FF7F00', // Light Orange
+        V: '#FFFF00', // Light Yellow
+        W: '#7CFC00', // Light Green
+        X: '#ADD8E6', // Light Blue
+        Y: '#EE82EE', // Light Violet
+        Z: '#9400D3', // Light Purple
+    };
 
-            return colorMap[groupKey] || '#FFFFFF'; // Default to white if the key is not found
-        }
+    return colorMap[groupKey.toUpperCase()] || '#808080'; // Default to mid-gray if key not found
+}
+
     </script>
 </body>
 
