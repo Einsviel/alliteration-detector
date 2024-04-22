@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Alliteration Detector</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
 </head>
 
@@ -101,8 +102,9 @@
         }
 
         .alliteration-group h2 {
-            font-size: 18px;
+            font-size: 24px;
             margin-bottom: 10px;
+            text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
         }
 
         .alliteration-pair {
@@ -247,59 +249,48 @@ function displayAlliterationGroups(alliterationPairs) {
                 downloadAllAlliterationPairs(alliterationPairs, inputText);
             }
         }
-
         function downloadAllAlliterationPairs(alliterationPairs, inputText) {
-    // Create header row for the CSV file using semicolon as the separator
-    const csvHeader = "No.;Pairs;Where to find;Full sentence";
+    // Create a new workbook
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Alliteration Pairs");
 
-    // Create content for the CSV file
-    const csvContent = alliterationPairs
-        .map((pair, index) => {
-            // Prepare the pair string with quotes for CSV format
-            const pairString = `"${pair.alliterationWord.replace(/"/g, '""')} - ${pair.followingWord.replace(/"/g, '""')}"`;
+    // Add headers
+    worksheet.addRow(["No.", "Pairs", "Where to find", "Full sentence"]);
 
-            // Prepare the sentence by escaping quotes and wrapping in quotes
-            const sentence = inputText.split(/[.!?]/)[pair.sentenceIndex].trim().replace(/"/g, '""');
+    // Add data rows
+    alliterationPairs.forEach((pair, index) => {
+        const pairString = `${pair.alliterationWord} - ${pair.followingWord}`;
+        const sentence = inputText.split(/[.!?]/)[pair.sentenceIndex].trim();
+        worksheet.addRow([index + 1, pairString, pair.sentenceIndex + 1, sentence]);
+    });
 
-            return `${index + 1};${pairString};${pair.sentenceIndex + 1};"${sentence}"`;
-        })
-        .join("\n");
+    // Generate XLSX file
+    workbook.xlsx.writeBuffer().then(function(buffer) {
+        const xlsxBlob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        const downloadLinkXLSX = createDownloadLink(xlsxBlob, "all_alliteration_pairs.xlsx", "Download XLSX");
 
-    // Concatenate header and content
-    const csvFullContent = `${csvHeader}\n${csvContent}`;
+        // Create content for the TXT file
+        const txtContent = alliterationPairs
+            .map(pair => `${pair.alliterationWord} - ${pair.followingWord} (Sentence ${pair.sentenceIndex + 1}): "${inputText.split(/[.!?]/)[pair.sentenceIndex].trim()}"`)
+            .join("\n");
+        const txtBlob = new Blob([txtContent], { type: "text/plain" });
+        const downloadLinkTXT = createDownloadLink(txtBlob, "all_alliteration_pairs.txt", "Download TXT");
 
-    // Create a Blob and download link for the CSV file
-    const csvBlob = new Blob([csvFullContent], { type: "text/csv" });
+        // Create content for the DOCX file
+        const docxContent = generateDocxContent(inputText, alliterationPairs);
+        const docxBlob = htmlDocx.asBlob(`<html><body>${docxContent}</body></html>`);
+        const downloadLinkDOCX = createDownloadLink(docxBlob, "all_alliteration_pairs.docx", "Download DOCX");
 
-    const downloadLinkCSV = createDownloadLink(csvBlob, "all_alliteration_pairs.csv", "Download CSV");
-
-    // Ensure your function includes the code to handle TXT and DOCX files if needed...
-
-
-
-            // Create content for the TXT file
-            const txtContent = alliterationPairs
-                .map(pair => `${pair.alliterationWord} - ${pair.followingWord} (Sentence ${pair.sentenceIndex + 1}): "${inputText.split(/[.!?]/)[pair.sentenceIndex].trim()}"`)
-                .join("\n");
-
-            // Create a Blob and download link for the TXT file
-            const txtBlob = new Blob([txtContent], { type: "text/plain" });
-
-            const downloadLinkTXT = createDownloadLink(txtBlob, "all_alliteration_pairs.txt", "Download TXT");
-
-            // Create content for the DOCX file
-            const docxContent = generateDocxContent(inputText, alliterationPairs);
-            const docxBlob = htmlDocx.asBlob(`<html><body>${docxContent}</body></html>`);
-
-            const downloadLinkDOCX = createDownloadLink(docxBlob, "all_alliteration_pairs.docx", "Download DOCX");
-
-            downloadSection.innerHTML = "";
-            downloadSection.appendChild(downloadLinkCSV);
-            downloadSection.appendChild(document.createTextNode(" "));
-            downloadSection.appendChild(downloadLinkTXT);
-            downloadSection.appendChild(document.createTextNode(" "));
-            downloadSection.appendChild(downloadLinkDOCX);
-        }
+        // Clear downloadSection and append download links
+        downloadSection.innerHTML = "";
+        downloadSection.appendChild(downloadLinkXLSX);
+        downloadSection.appendChild(document.createTextNode(" "));
+        downloadSection.appendChild(downloadLinkTXT);
+        downloadSection.appendChild(document.createTextNode(" "));
+        downloadSection.appendChild(downloadLinkDOCX);
+    });
+}
+        
 
         function generateDocxContent(text, alliterationPairs) {
             let coloredText = text;
