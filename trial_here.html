@@ -17,6 +17,8 @@
         cols="50"
         placeholder="Enter text here..."
     ></textarea>
+    <p id="tutorial"><a href="https://github.com/Einsviel/alliteration-detector">
+        Open me for tutorial</a></p>
     <button id="analyzeButton">Analyze</button>
     <div id="outputSection"></div>
     <div id="downloadSection"></div>
@@ -127,6 +129,16 @@
             font-size: 14px;
             margin-bottom: 3rem;
         }
+        #tutorial {
+            text-align: center;
+            text-decoration: none;
+            color: #ffffff;
+        }
+
+        #tutorial a {
+            text-decoration: none;
+            color: #ffffff;
+        }
     </style>
 
     <script>
@@ -151,6 +163,20 @@
                 displayDownloadLinks(alliterationPairs, inputText);
             }
         }
+
+// Define the blockCharacters function
+function blockCharacters(inputFieldId, blockedCharacters) {
+    const inputField = document.getElementById(inputFieldId);
+
+    inputField.addEventListener('input', function(event) {
+        const inputValue = event.target.value;
+        const filteredValue = inputValue.split('').filter(char => !blockedCharacters.includes(char)).join('');
+        inputField.value = filteredValue;
+    });
+}
+
+// Blocking all the characters that could mess up my code
+blockCharacters('textInput', ['<', ,'>', '{', '}', "'" ]); 
 
         function detectAlliteration(text) {
     const sentences = text.match(/[^.!?]+[.!?]+/g);
