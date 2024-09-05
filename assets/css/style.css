@@ -339,3 +339,11 @@ div.container {
     padding: 10px 20px;
     color: black;
 }
+
+/* ************************************* 
+* Bagian Tutorial
+*****************************************/
+iframe{
+    width: 100%;
+    height: auto;
+}
