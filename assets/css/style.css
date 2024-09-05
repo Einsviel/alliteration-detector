@@ -191,7 +191,7 @@ body {
     padding-left: 5rem;
     padding-right: 5rem;
     background-color: #FCF2FF;
-    background-image: url('/assets/img/main-background.png');
+    background-image: url('main-background.png');
     background-repeat: repeat-x;
     background-position-y: -10rem;
     color: white;
