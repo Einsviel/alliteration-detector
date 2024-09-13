@@ -21,47 +21,50 @@ function handleAnalysis() {
 }
 
 function detectAlliteration(text) {
-const sentences = text.match(/[^.!?]+[.!?]+/g);
-const alliterationPairs = [];
+    const sentences = text.match(/[^.!?]+[.!?]+/g);
+    const alliterationPairs = [];
+    const digraphs = ["ph", "ch", "th", "wh", "sh"]; // List of special digraphs
 
-if (!sentences) {
-return alliterationPairs;
-}
+    if (!sentences) {
+        return alliterationPairs;
+    }
 
-for (let s = 0; s < sentences.length; s++) {
-const words = sentences[s].split(/\s+/);
+    for (let s = 0; s < sentences.length; s++) {
+        const words = sentences[s].split(/\s+/);
 
-const uniqueWords = Array.from(new Set(words.map(word => word.toLowerCase())));
+        const uniqueWords = Array.from(new Set(words.map(word => word.toLowerCase())));
 
-for (let i = 0; i < uniqueWords.length; i++) {
-    const currentWord = uniqueWords[i];
+        for (let i = 0; i < uniqueWords.length; i++) {
+            const currentWord = uniqueWords[i];
 
-    for (let j = i + 1; j < uniqueWords.length; j++) {
-        const nextWord = uniqueWords[j];
+            for (let j = i + 1; j < uniqueWords.length; j++) {
+                const nextWord = uniqueWords[j];
 
-        // Check if the first letters match
-        const isFirstLettersEqual = currentWord.charAt(0) === nextWord.charAt(0);
+                // Check if the first letters match or if they match specific digraphs
+                const isFirstLettersEqual = currentWord.charAt(0) === nextWord.charAt(0);
+                const isFirstTwoLettersEqual = digraphs.includes(currentWord.slice(0, 2)) &&
+                                               currentWord.slice(0, 2) === nextWord.slice(0, 2);
 
-        if (isFirstLettersEqual) {
-            const originalAlliterationWord = words.find(word => word.toLowerCase() === currentWord);
-            const originalFollowingWord = words.find(word => word.toLowerCase() === nextWord);
+                if (isFirstLettersEqual || isFirstTwoLettersEqual) {
+                    const originalAlliterationWord = words.find(word => word.toLowerCase() === currentWord);
+                    const originalFollowingWord = words.find(word => word.toLowerCase() === nextWord);
 
-            // Check if the positions are different before adding to pairs
-            if (words.indexOf(originalAlliterationWord) !== words.indexOf(originalFollowingWord)) {
-                alliterationPairs.push({
-                    alliterationWord: currentWord,
-                    followingWord: nextWord,
-                    originalAlliterationWord,
-                    originalFollowingWord,
-                    sentenceIndex: s,
-                });
+                    // Check if the positions are different before adding to pairs
+                    if (words.indexOf(originalAlliterationWord) !== words.indexOf(originalFollowingWord)) {
+                        alliterationPairs.push({
+                            alliterationWord: currentWord,
+                            followingWord: nextWord,
+                            originalAlliterationWord,
+                            originalFollowingWord,
+                            sentenceIndex: s,
+                        });
+                    }
+                }
             }
         }
     }
-}
-}
 
-return alliterationPairs;
+    return alliterationPairs;
 }
 // Define the blockCharacters function
 function blockCharacters(inputFieldId, blockedCharacters) {
@@ -75,44 +78,52 @@ inputField.value = filteredValue;
 }
 
 // Blocking all the characters that could mess up my code
-blockCharacters('textInput', ['<', ,'>', '{', '}', "'" ]); 
+blockCharacters('textInput', ['<', '>', '{', '}', "'" ]); 
 function displayAlliterationGroups(alliterationPairs) {
-outputSection.innerHTML = "";
+    outputSection.innerHTML = "";
 
-const groupedAlliteration = groupAlliterationPairs(alliterationPairs);
+    const groupedAlliteration = groupAlliterationPairs(alliterationPairs);
 
-// Sort the keys alphabetically
-const sortedKeys = Array.from(groupedAlliteration.keys()).sort();
+    // Sort the keys alphabetically
+    const sortedKeys = Array.from(groupedAlliteration.keys()).sort();
 
-for (const groupKey of sortedKeys) {
-const group = groupedAlliteration.get(groupKey);
+    for (const groupKey of sortedKeys) {
+        const group = groupedAlliteration.get(groupKey);
 
-const groupContainer = document.createElement("div");
-groupContainer.classList.add("alliteration-group");
+        const groupContainer = document.createElement("div");
+        groupContainer.classList.add("alliteration-group");
 
-const groupTitle = document.createElement("h2");
-groupTitle.textContent = `${groupKey} Group`;
-groupTitle.style.color = getGroupColor(groupKey); // Set color for group title
-groupContainer.appendChild(groupTitle);
+        const groupTitle = document.createElement("h2");
+        groupTitle.textContent = `${groupKey} Group`; // This will now display digraphs as well
+        groupTitle.style.color = getGroupColor(groupKey); // Set color for group title
+        groupContainer.appendChild(groupTitle);
 
-for (const pair of group) {
-    const pairElement = document.createElement("div");
-    pairElement.classList.add("alliteration-pair");
-    pairElement.innerHTML = `<span style="color: black;">${pair.alliterationWord}</span> - <span style="color: black;">${pair.followingWord}</span> (Sentence ${pair.sentenceIndex + 1})`;
-    groupContainer.appendChild(pairElement);
+        for (const pair of group) {
+            const pairElement = document.createElement("div");
+            pairElement.classList.add("alliteration-pair");
+            pairElement.innerHTML = `<span style="color: black;">${pair.alliterationWord}</span> - <span style="color: black;">${pair.followingWord}</span> (Sentence ${pair.sentenceIndex + 1})`;
+            groupContainer.appendChild(pairElement);
+        }
+
+        outputSection.appendChild(groupContainer);
+    }
 }
-
-outputSection.appendChild(groupContainer);
-}
-}
-
-
 
 function groupAlliterationPairs(alliterationPairs) {
     const groupedAlliteration = new Map();
+    const digraphs = ["ph", "ch", "th", "wh", "sh"]; // List of special digraphs
 
     for (const pair of alliterationPairs) {
-        const key = pair.alliterationWord[0].toUpperCase();
+        let key = pair.alliterationWord[0].toUpperCase(); // Default to first letter
+
+        // Check if the word starts with any of the digraphs
+        for (const digraph of digraphs) {
+            if (pair.alliterationWord.toLowerCase().startsWith(digraph)) {
+                key = digraph.toUpperCase(); // Use the digraph as the key
+                break;
+            }
+        }
+
         if (!groupedAlliteration.has(key)) {
             groupedAlliteration.set(key, []);
         }
