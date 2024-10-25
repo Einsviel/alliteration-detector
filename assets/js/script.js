@@ -6,18 +6,25 @@ const downloadSection = document.getElementById("downloadSection");
 let alliterationPairs = [];
 let inputText = "";
 
-analyzeButton.addEventListener("click", handleAnalysis);
+analyzeButton.addEventListener("click", handleAnalysis);  
+
 
 function handleAnalysis() {
-    inputText = textInput.value;
+  inputText = textInput.value;
 
-    if (inputText.trim() === "") {
-        alert("Please enter text in the input box.");
-    } else {
-        alliterationPairs = detectAlliteration(inputText);
-        displayAlliterationGroups(alliterationPairs);
-        displayDownloadLinks(alliterationPairs, inputText);
-    }
+  if (inputText.trim() === "") {
+    alert("Please enter text in the input box.");
+  } else {
+    // Show loading screen
+    document.getElementById('loadingScreen').style.display = 'flex';
+
+    alliterationPairs = detectAlliteration(inputText); // Perform alliteration detection
+
+    // Hide loading screen and display results (after detection is complete)
+    document.getElementById('loadingScreen').style.display = 'none';
+    displayAlliterationGroups(alliterationPairs);
+    displayDownloadLinks(alliterationPairs, inputText);
+  }
 }
 
 function detectAlliteration(text) {
