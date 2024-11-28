@@ -10,69 +10,83 @@ analyzeButton.addEventListener("click", handleAnalysis);
 
 
 function handleAnalysis() {
-  inputText = textInput.value;
-
-  if (inputText.trim() === "") {
-    alert("Please enter text in the input box.");
-  } else {
-    // Show loading screen
-    document.getElementById('loadingScreen').style.display = 'flex';
-
-    alliterationPairs = detectAlliteration(inputText); // Perform alliteration detection
-
-    // Hide loading screen and display results (after detection is complete)
-    document.getElementById('loadingScreen').style.display = 'none';
-    displayAlliterationGroups(alliterationPairs);
-    displayDownloadLinks(alliterationPairs, inputText);
+    inputText = textInput.value;
+  
+    if (inputText.trim() === "") {
+      alert("Please enter text in the input box.");
+    } else {
+      // Show loading screen
+      document.getElementById('loadingScreen').style.display = 'flex';
+  
+      // Perform analysis asynchronously
+      analyzeTextAsync(inputText)
+        .then(alliterationPairs => {
+          // Hide loading screen and display results
+          document.getElementById('loadingScreen').style.display = 'none';
+          displayAlliterationGroups(alliterationPairs);
+          displayDownloadLinks(alliterationPairs, inputText);
+        })
+        .catch(error => {
+          console.error('Error during analysis:', error);
+          // Handle errors, e.g., display an error message to the user
+          alert('An error occurred during analysis. Please try again.');
+        });
+    }
   }
-}
-
+  async function analyzeTextAsync(text) {
+    return new Promise(resolve => {
+      // Simulate a long-running task (adjust as needed)
+      setTimeout(() => {
+        const alliterationPairs = detectAlliteration(text);
+        resolve(alliterationPairs);
+      }, 1000); // Adjust the timeout as needed
+    });
+  }
 function detectAlliteration(text) {
     const sentences = text.match(/[^.!?]+[.!?]+/g);
     const alliterationPairs = [];
-    const digraphs = ["ph", "ch", "th", "wh", "sh"]; // List of special digraphs
-
+    const digraphs = ["ph", "ch", "th", "wh", "sh"];
+  
     if (!sentences) {
-        return alliterationPairs;
+      return alliterationPairs;
     }
-
+  
     for (let s = 0; s < sentences.length; s++) {
-        const words = sentences[s].split(/\s+/);
-
-        const uniqueWords = Array.from(new Set(words.map(word => word.toLowerCase())));
-
-        for (let i = 0; i < uniqueWords.length; i++) {
-            const currentWord = uniqueWords[i];
-
-            for (let j = i + 1; j < uniqueWords.length; j++) {
-                const nextWord = uniqueWords[j];
-
-                // Check if the first letters match or if they match specific digraphs
-                const isFirstLettersEqual = currentWord.charAt(0) === nextWord.charAt(0);
-                const isFirstTwoLettersEqual = digraphs.includes(currentWord.slice(0, 2)) &&
-                                               currentWord.slice(0, 2) === nextWord.slice(0, 2);
-
-                if (isFirstLettersEqual || isFirstTwoLettersEqual) {
-                    const originalAlliterationWord = words.find(word => word.toLowerCase() === currentWord);
-                    const originalFollowingWord = words.find(word => word.toLowerCase() === nextWord);
-
-                    // Check if the positions are different before adding to pairs
-                    if (words.indexOf(originalAlliterationWord) !== words.indexOf(originalFollowingWord)) {
-                        alliterationPairs.push({
-                            alliterationWord: currentWord,
-                            followingWord: nextWord,
-                            originalAlliterationWord,
-                            originalFollowingWord,
-                            sentenceIndex: s,
-                        });
-                    }
-                }
+      const words = sentences[s].split(/\s+/);
+  
+      const uniqueWords = Array.from(new Set(words.map(word => word.toLowerCase())));
+  
+      for (let i = 0; i < uniqueWords.length; i++) {
+        const currentWord = uniqueWords[i];
+        const currentFirstTwoLetters = currentWord.slice(0, 2).toLowerCase();
+  
+        for (let j = i + 1; j < uniqueWords.length; j++) {
+          const nextWord = uniqueWords[j];
+          const nextFirstTwoLetters = nextWord.slice(0, 2).toLowerCase();
+  
+          // Check if both words have the same digraph or the same first letter
+          if ((digraphs.includes(currentFirstTwoLetters) && currentFirstTwoLetters === nextFirstTwoLetters) ||
+              (currentWord[0] === nextWord[0] && !digraphs.includes(currentFirstTwoLetters) && !digraphs.includes(nextFirstTwoLetters))) {
+            const originalAlliterationWord = words.find(word => word.toLowerCase() === currentWord);
+            const originalFollowingWord = words.find(word => word.toLowerCase() === nextWord);
+  
+            // Check if the positions are different before adding to pairs
+            if (words.indexOf(originalAlliterationWord) !== words.indexOf(originalFollowingWord)) {
+              alliterationPairs.push({
+                alliterationWord: currentWord,
+                followingWord: nextWord,
+                originalAlliterationWord,
+                originalFollowingWord,
+                sentenceIndex: s,
+              });
             }
+          }
         }
+      }
     }
-
+  
     return alliterationPairs;
-}
+  }
 // Define the blockCharacters function
 function blockCharacters(inputFieldId, blockedCharacters) {
 const inputField = document.getElementById(inputFieldId);
@@ -118,27 +132,36 @@ function displayAlliterationGroups(alliterationPairs) {
 
 function groupAlliterationPairs(alliterationPairs) {
     const groupedAlliteration = new Map();
-    const digraphs = ["ph", "ch", "th", "wh", "sh"]; // List of special digraphs
-
+    const digraphs = ["ph", "ch", "th", "wh", "sh", "ng"];
+  
     for (const pair of alliterationPairs) {
-        let key = pair.alliterationWord[0].toUpperCase(); // Default to first letter
-
-        // Check if the word starts with any of the digraphs
-        for (const digraph of digraphs) {
-            if (pair.alliterationWord.toLowerCase().startsWith(digraph)) {
-                key = digraph.toUpperCase(); // Use the digraph as the key
-                break;
-            }
+      const firstTwoLetters = pair.alliterationWord.slice(0, 2).toLowerCase();
+  
+      if (digraphs.includes(firstTwoLetters)) {
+        const groupKey = firstTwoLetters.toUpperCase();
+  
+        if (!groupedAlliteration.has(groupKey)) {
+          groupedAlliteration.set(groupKey, []);
         }
-
-        if (!groupedAlliteration.has(key)) {
-            groupedAlliteration.set(key, []);
+  
+        groupedAlliteration.get(groupKey).push(pair);
+      } else {
+        // Handle single-letter groups, excluding words with digraphs
+        const firstLetter = pair.alliterationWord[0].toUpperCase();
+  
+        if (!groupedAlliteration.has(firstLetter)) {
+          groupedAlliteration.set(firstLetter, []);
         }
-        groupedAlliteration.get(key).push(pair);
+  
+        // Check if the word doesn't start with a digraph before adding
+        if (!digraphs.includes(firstTwoLetters)) {
+          groupedAlliteration.get(firstLetter).push(pair);
+        }
+      }
     }
-
+  
     return groupedAlliteration;
-}
+  }
 
 function displayDownloadLinks(alliterationPairs, inputText) {
     if (alliterationPairs.length === 0) {
@@ -241,6 +264,12 @@ W: '#7CFC00', // Light Green
 X: '#ADD8E6', // Light Blue
 Y: '#EE82EE', // Light Violet
 Z: '#9400D3', // Light Purple
+TH: '#000000', // Black
+PH: '#000000', // Black
+CH: '#000000', // Black
+WH: '#000000', // Black
+SH: '#000000', // Black
+NG: '#000000', // Black
 };
 
 return colorMap[groupKey.toUpperCase()] || '#808080'; // Default to mid-gray if key not found
