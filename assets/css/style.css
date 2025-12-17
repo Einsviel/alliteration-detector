@@ -43,10 +43,6 @@ cursor: pointer;
 .home a{
     text-decoration: none;
 }
-.home p{
-    margin-top: -1rem;
-    font-size: 12px;
-}
 .hamburger {
 position: absolute;
 top: 0.5rem;
@@ -195,7 +191,7 @@ body {
     padding-left: 5rem;
     padding-right: 5rem;
     background-color: #FCF2FF;
-    background-image: url('main-background.png');
+    background-image: url(/assets/img/main-background.svg);
     background-repeat: repeat-x;
     background-position-y: -10rem;
     color: white;
@@ -343,39 +339,26 @@ div.container {
     padding: 10px 20px;
     color: black;
 }
-
 /* ************************************* 
-* Bagian Tutorial
+* Loading
 *****************************************/
-iframe{
-    width: 100%;
-    height: 480px;
-}
-/* ************************************* 
-* Bagian Loading
-*****************************************/
-#loadingScreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .loader {
-    border: 16px solid #f3f3f3; /* Light grey */
-    border-top: 16px solid #3498db; /* Blue */
+.loader {
+    border: 10px solid #f3f3f3;
+    border-top: 10px solid #a13cb1; /* Matches your navbar purple */
     border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    animation: spin 2s linear infinite;
-  }
-  
-  @keyframes spin {
+    width: 80px;
+    height: 80px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-  }
+}
+/* ************************************* 
+* Video Youtube
+*****************************************/
+iframe{
+    min-height: 480px;
+    min-width: 100%;
+}
